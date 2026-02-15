@@ -27,6 +27,10 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.dev
+.env.prod
+# ただし、.env.example はコミットする
+!.env.example
 
 # vercel
 .vercel
@@ -34,3 +38,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/generated/prisma
+
+# local / sensitive (do not commit)
+likelive2/CURRENT_STATUS.md
+likelive2/update-database-url.md
+likelive2/connection-troubleshooting.md
+likelive2/check-connection-pool.sh
+likelive2/test-db-connection.js

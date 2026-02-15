@@ -1,0 +1,264 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum BlogCategory {
+  DIARY
+  REPORT
+  OTHER
+}
+
+enum NotificationType {
+  FOLLOW
+  COMMENT
+  BLOG_CREATED
+}
+
+// ============================================
+// Models
+// ============================================
+
+model User {
+  id               Int     @id @default(autoincrement())
+  displayName      String? @map("display_name")
+  enabled          Boolean @default(true)
+  subject          String?
+  selfIntroduction String? @map("self_introduction") @db.VarChar(1000)
+  profileImageUrl  String? @map("profile_image_url")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userArtists          UserArtist[]
+  likedBlogs           UserBlogLike[]
+  authoredBlogs        Blog[]         @relation("BlogAuthor")
+  authoredComments     Comment[]
+  followerRelations    Follow[]       @relation("Follower")
+  followedRelations    Follow[]       @relation("Followed")
+  targetNotifications  Notification[] @relation("TargetUser")
+  triggerNotifications Notification[] @relation("TriggerUser")
+
+  @@map("users")
+}
+
+model Artist {
+  id       String  @id // Spotify側で定義されている一意の文字列
+  name     String?
+  imageUrl String? @map("image_url")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userArtists UserArtist[]
+  blogArtists BlogArtist[]
+
+  @@map("artists")
+}
+
+model Blog {
+  id              Int          @id @default(autoincrement())
+  title           String       @db.VarChar(255)
+  content         Json // Map<String, Object> を JSON に変換
+  status          BlogStatus
+  authorId        Int          @map("author_id")
+  blogCreatedTime DateTime     @default(now()) @map("blog_created_time")
+  blogUpdatedTime DateTime     @updatedAt @map("blog_updated_time")
+  tags            String?      @db.VarChar(255)
+  viewCount       Int          @default(0) @map("view_count")
+  likeCount       Int          @default(0) @map("like_count")
+  commentCount    Int          @default(0) @map("comment_count")
+  thumbnailUrl    String?      @map("thumbnail_url") @db.VarChar(255)
+  slug            String?      @unique @db.VarChar(255)
+  category        BlogCategory
+  isDeleted       Boolean      @default(false) @map("is_deleted")
+  setlist         Json? // Setlist を JSON に変換
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  author               User           @relation("BlogAuthor", fields: [authorId], references: [id])
+  blogArtists          BlogArtist[]
+  likedByUsers         UserBlogLike[]
+  comments             Comment[]
+  relatedNotifications Notification[] @relation("RelatedBlog")
+
+  @@map("blogs")
+}
+
+model Comment {
+  id                 Int      @id @default(autoincrement())
+  content            String   @db.Text
+  authorId           Int      @map("author_id")
+  blogId             Int      @map("blog_id")
+  commentCreatedTime DateTime @default(now()) @map("comment_created_time")
+  commentUpdatedTime DateTime @updatedAt @map("comment_updated_time")
+  isDeleted          Boolean  @default(false) @map("is_deleted")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  author               User           @relation(fields: [authorId], references: [id])
+  blog                 Blog           @relation(fields: [blogId], references: [id])
+  parentCommentTree    CommentTree[]  @relation("ParentComment")
+  replyCommentTree     CommentTree[]  @relation("ReplyComment")
+  relatedNotifications Notification[] @relation("RelatedComment")
+
+  @@map("comments")
+}
+
+model UserArtist {
+  userId   Int    @map("user_id")
+  artistId String @map("artist_id")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@id([userId, artistId])
+  @@map("user_artists")
+}
+
+model BlogArtist {
+  id       Int    @id @default(autoincrement())
+  blogId   Int    @map("blog_id")
+  artistId String @map("artist_id")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("blog_artists")
+}
+
+model UserBlogLike {
+  userId Int @map("user_id")
+  blogId Int @map("blog_id")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@id([userId, blogId])
+  @@map("user_blog_like")
+}
+
+model Follow {
+  id         Int      @id @default(autoincrement())
+  followerId Int      @map("follower_id")
+  followedId Int      @map("followed_id")
+  followAt   DateTime @default(now()) @map("follow_at")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  follower User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("Followed", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@map("follows")
+}
+
+model Notification {
+  id                    Int              @id @default(autoincrement())
+  targetUserId          Int              @map("target_user_id")
+  triggerUserId         Int?             @map("trigger_user_id")
+  notificationType      NotificationType @map("notification_type")
+  isRead                Boolean          @default(false) @map("is_read")
+  notificationCreatedAt DateTime         @default(now()) @map("notification_created_at")
+  readAt                DateTime?        @map("read_at")
+  blogId                Int?             @map("blog_id")
+  commentId             Int?             @map("comment_id")
+  isDeleted             Boolean          @default(false) @map("is_deleted")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  targetUser     User     @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  triggerUser    User?    @relation("TriggerUser", fields: [triggerUserId], references: [id], onDelete: SetNull)
+  relatedBlog    Blog?    @relation("RelatedBlog", fields: [blogId], references: [id], onDelete: SetNull)
+  relatedComment Comment? @relation("RelatedComment", fields: [commentId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model CommentTree {
+  parentCommentId Int @map("parent_comment_id")
+  replyCommentId  Int @map("reply_comment_id")
+  replyNumber     Int @map("reply_number")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  parentComment Comment @relation("ParentComment", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replyComment  Comment @relation("ReplyComment", fields: [replyCommentId], references: [id], onDelete: Cascade)
+
+  @@id([parentCommentId, replyCommentId])
+  @@map("comment_tree")
+}
