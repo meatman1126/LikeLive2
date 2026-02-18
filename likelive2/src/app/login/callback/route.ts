@@ -3,7 +3,6 @@ import { verifyGoogleToken } from "@/lib/auth/google-token-verifier";
 import { env } from "@/lib/config/env";
 import { findUserBySubject, registerUser } from "@/lib/services/user-service";
 import { UnauthorizedError } from "@/lib/utils/errors";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const ACCESS_TOKEN_COOKIE = "ll_accessToken";
@@ -73,19 +72,6 @@ export async function GET(request: NextRequest) {
       throw new UnauthorizedError("Invalid or expired token");
     }
 
-    // Cookie保存（Route Handler内なので可能）
-    const store = await cookies();
-    store.set(ACCESS_TOKEN_COOKIE, tokenData.access_token, cookieOptions());
-
-    if (tokenData.refresh_token) {
-      store.set(REFRESH_TOKEN_COOKIE, tokenData.refresh_token, cookieOptions());
-    }
-
-    if (typeof tokenData.expires_in === "number") {
-      const expiresAt = Date.now() + tokenData.expires_in * 1000;
-      store.set(TOKEN_EXPIRES_AT_COOKIE, String(expiresAt), cookieOptions());
-    }
-
     // ユーザー取得/初回登録
     let user = await findUserBySubject(subject);
     if (!user) {
@@ -96,8 +82,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Cookieがセットされたのでダッシュボードへリダイレクト
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    // リダイレクトレスポンスにCookieを直接付与（返すレスポンスに乗せないと本番で失われることがある）
+    const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
+    const opts = cookieOptions();
+    redirectResponse.cookies.set(ACCESS_TOKEN_COOKIE, tokenData.access_token, opts);
+    if (tokenData.refresh_token) {
+      redirectResponse.cookies.set(REFRESH_TOKEN_COOKIE, tokenData.refresh_token, opts);
+    }
+    if (typeof tokenData.expires_in === "number") {
+      const expiresAt = Date.now() + tokenData.expires_in * 1000;
+      redirectResponse.cookies.set(TOKEN_EXPIRES_AT_COOKIE, String(expiresAt), opts);
+    }
+    return redirectResponse;
   } catch (error) {
     console.error("OAuth callback error:", error);
     // エラー時はルートページへリダイレクト

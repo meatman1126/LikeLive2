@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "5mb",
     },
+    // Prisma Query Engine をサーバーバンドルに含める（Vercel 用）
+    outputFileTracingIncludes: {
+      "/**": ["./generated/prisma/**/*.node"],
+    },
   },
   // 画像の外部ホスト設定
   images: {
