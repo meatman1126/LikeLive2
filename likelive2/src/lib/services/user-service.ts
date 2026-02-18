@@ -251,7 +251,7 @@ export async function searchUsers(
     AND u.enabled = true
   `;
 
-  return rows.map((row) => ({
+  return rows.map((row: RawRow) => ({
     id: row.id,
     displayName: row.display_name,
     profileImageUrl: row.profile_image_url,

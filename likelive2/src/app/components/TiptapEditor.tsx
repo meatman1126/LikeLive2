@@ -72,7 +72,7 @@ const TiptapEditor = forwardRef<Editor | null, TiptapEditorProps>(
     });
 
     // 親コンポーネントからeditorにアクセスできるようにする
-    useImperativeHandle(ref, () => editor, [editor]);
+    useImperativeHandle<Editor | null, Editor | null>(ref, () => editor, [editor]);
 
     // content propが変更された場合にエディタのコンテンツを更新する
     useEffect(() => {

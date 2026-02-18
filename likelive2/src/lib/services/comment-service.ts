@@ -45,7 +45,7 @@ export async function findParentCommentsByBlogId(
     },
   });
 
-  const replyIds = replyCommentIds.map((ct) => ct.replyCommentId);
+  const replyIds = replyCommentIds.map((ct: { replyCommentId: number }) => ct.replyCommentId);
 
   // 返信コメントとして存在しないコメント（親コメント）を取得
   const whereClause: any = {
