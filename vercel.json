@@ -1,5 +1,4 @@
 {
-  "buildCommand": "npx prisma generate && cd likelive2 && npm run build",
-  "installCommand": "npm install && cd likelive2 && npm install",
-  "outputDirectory": "likelive2/.next"
+  "installCommand": "cd .. && npm install && cd likelive2 && npm install",
+  "buildCommand": "cd .. && npx prisma generate && cd likelive2 && npm run build"
 }
