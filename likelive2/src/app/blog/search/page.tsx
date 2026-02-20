@@ -38,8 +38,15 @@ export default async function BlogSearchPage({ searchParams }: Props) {
     ? await searchBlogsByArtistAction(artist, page, limit)
     : null;
 
-  // 初期表示時（アーティスト未検索）はおすすめブログを表示（ダッシュボードと同じ取得）
-  let recommendedBlogs: Awaited<ReturnType<typeof getInterestBlogsAction>> = [];
+  type BlogCardItem = {
+    id: number;
+    title: string;
+    description?: string | null;
+    thumbnailUrl?: string | null;
+    author?: { displayName: string | null; profileImageUrl: string | null };
+  };
+  // 初期表示時（アーティスト未検索）はおすすめブログを表示（表示用の共通型で受け取り）
+  let recommendedBlogs: BlogCardItem[] = [];
   if (!artist) {
     if (currentUser) {
       try {
@@ -51,14 +58,6 @@ export default async function BlogSearchPage({ searchParams }: Props) {
       recommendedBlogs = await getPublicRecommendedBlogsAction(50);
     }
   }
-
-  type BlogCardItem = {
-    id: number;
-    title: string;
-    description?: string | null;
-    thumbnailUrl?: string | null;
-    author?: { displayName: string | null; profileImageUrl: string | null };
-  };
   const blogsToShow: BlogCardItem[] =
     artist && result ? result.data : recommendedBlogs;
 

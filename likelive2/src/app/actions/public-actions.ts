@@ -14,7 +14,7 @@ import {
   findRepliesByParentCommentId,
 } from "@/lib/services/comment-service";
 import { NotFoundError } from "@/lib/utils/errors";
-import type { Comment } from "@/generated/prisma/client";
+import type { Comment, User } from "@/generated/prisma/client";
 
 /**
  * 未認証ユーザ向けにブログ記事を取得します（公開中のブログのみ）。
@@ -47,9 +47,10 @@ export async function getPublicBlogArtistsAction(blogId: number) {
 
 /**
  * 親コメントと返信を含む階層構造の型
+ * （Prisma の Comment はリレーションを含まないため、author は User で明示）
  */
 export type CommentWithReplies = Comment & {
-  author: Comment["author"];
+  author: User;
   replies: CommentWithReplies[];
 };
 
@@ -62,11 +63,11 @@ export type CommentWithReplies = Comment & {
 export async function getPublicBlogCommentsAction(
   blogId: number
 ): Promise<CommentWithReplies[]> {
-  // 親コメントを取得
+  // 親コメントを取得（comment-service で include: { author: true } しているため実行時は author を含む）
   const parentComments = await findParentCommentsByBlogId(blogId);
 
   // 各親コメントの返信を取得
-  const commentsWithReplies: CommentWithReplies[] = await Promise.all(
+  const commentsWithReplies = (await Promise.all(
     parentComments.map(async (parentComment) => {
       const replies = await findRepliesByParentCommentId(parentComment.id);
       return {
@@ -77,7 +78,7 @@ export async function getPublicBlogCommentsAction(
         })),
       };
     })
-  );
+  )) as unknown as CommentWithReplies[];
 
   return commentsWithReplies;
 }

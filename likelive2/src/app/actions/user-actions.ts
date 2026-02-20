@@ -8,6 +8,7 @@ import {
   getCurrentUserFromHeaders,
   getCurrentUserIdFromHeaders,
 } from "@/lib/auth/server-actions-auth";
+import { UnauthorizedError } from "@/lib/utils/errors";
 import { prisma } from "@/lib/prisma/client";
 import { isFollowing } from "@/lib/services/follow-service";
 import { getLikedBlogsByUserId } from "@/lib/services/like-service";
@@ -115,6 +116,9 @@ export async function initialUpdateUserAction(data: UserRegistrationForm) {
  */
 export async function registerUserAction(data: UserRegistrationForm) {
   const currentUser = await getCurrentUserFromHeaders();
+  if (currentUser.subject == null) {
+    throw new UnauthorizedError("User subject is required for registration");
+  }
   return registerUser(currentUser.subject, data.userName);
 }
 
@@ -124,6 +128,9 @@ export async function registerUserAction(data: UserRegistrationForm) {
 export async function deleteUserAction() {
   const currentUserId = await getCurrentUserIdFromHeaders();
   const currentUser = await getCurrentUserFromHeaders();
+  if (currentUser.subject == null) {
+    throw new UnauthorizedError("User subject is required for delete");
+  }
   await deleteUser(currentUserId, currentUser.subject);
   return { message: "User deleted successfully" };
 }

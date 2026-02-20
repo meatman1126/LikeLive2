@@ -151,9 +151,6 @@ export default async function BlogDetailPage({ params }: Props) {
             <h1 className="text-2xl font-semibold text-gray-700">
               {blog.title}
             </h1>
-            {blog.description ? (
-              <p className="text-sm text-gray-700">{blog.description}</p>
-            ) : null}
             {isPublished && (
               <div className="pt-1">
                 <BlogLikeButton

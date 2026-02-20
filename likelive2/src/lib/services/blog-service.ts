@@ -3,6 +3,7 @@
  */
 
 import type { Artist, Blog, BlogCategory, BlogStatus } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "../prisma/client";
 import { ForbiddenError, NotFoundError } from "../utils/errors";
 import type { PaginationResult } from "../utils/pagination";
@@ -207,7 +208,10 @@ export async function createBlog(
       tags: data.tags || null,
       thumbnailUrl: data.thumbnailUrl || null,
       slug: slug || null,
-      setlist: data.setlist as object | null,
+      setlist:
+        data.setlist != null && typeof data.setlist === "object"
+          ? (data.setlist as object)
+          : undefined,
       createdBy,
       updatedBy: createdBy,
     },
@@ -306,7 +310,7 @@ export async function updateBlog(
     }
   }
 
-  // ブログを更新
+  // ブログを更新（setlist の null は Prisma.JsonNull で渡す）
   const updateData: {
     title?: string;
     content?: object;
@@ -315,7 +319,7 @@ export async function updateBlog(
     tags?: string | null;
     thumbnailUrl?: string | null;
     slug?: string | null;
-    setlist?: object | null;
+    setlist?: object | typeof Prisma.JsonNull;
     updatedBy: string;
   } = {
     updatedBy,
@@ -330,11 +334,12 @@ export async function updateBlog(
     updateData.thumbnailUrl = data.thumbnailUrl;
   if (data.slug !== undefined) updateData.slug = data.slug;
   if (data.setlist !== undefined)
-    updateData.setlist = data.setlist as object | null;
+    updateData.setlist =
+      data.setlist === null ? Prisma.JsonNull : (data.setlist as object);
 
   const updatedBlog = await prisma.blog.update({
     where: { id },
-    data: updateData,
+    data: updateData as Parameters<typeof prisma.blog.update>[0]["data"],
   });
 
   // アーティスト情報の更新（指定された場合）
