@@ -2,7 +2,12 @@
  * ブログサービスクラス
  */
 
-import type { Artist, Blog, BlogCategory, BlogStatus } from "@/generated/prisma/client";
+import type {
+  Artist,
+  Blog,
+  BlogCategory,
+  BlogStatus,
+} from "@/generated/prisma/client";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "../prisma/client";
 import { ForbiddenError, NotFoundError } from "../utils/errors";
@@ -17,7 +22,7 @@ import { createNotification } from "./notification-service";
  * @returns ブログ記事リスト
  */
 export async function findPublishedBlogsByUserId(
-  userId: number
+  userId: number,
 ): Promise<Blog[]> {
   return prisma.blog.findMany({
     where: {
@@ -41,7 +46,7 @@ export async function findPublishedBlogsByUserId(
  */
 export async function getBlogById(
   id: number,
-  includeDeleted: boolean = false
+  includeDeleted: boolean = false,
 ): Promise<Blog> {
   const blog = await prisma.blog.findUnique({
     where: { id },
@@ -88,7 +93,7 @@ export async function getBlogBySlug(slug: string): Promise<Blog> {
 export async function getPublishedBlogs(
   page: number = 1,
   limit: number = 10,
-  category?: BlogCategory
+  category?: BlogCategory,
 ): Promise<PaginationResult<Blog>> {
   const skip = (page - 1) * limit;
 
@@ -135,7 +140,7 @@ export async function getPublishedBlogs(
  */
 export async function findBlogsByUserId(
   userId: number,
-  includeDeleted: boolean = false
+  includeDeleted: boolean = false,
 ): Promise<Blog[]> {
   const where: {
     authorId: number;
@@ -177,7 +182,7 @@ export async function createBlog(
     setlist?: unknown | null; // JSON形式
     artistIds?: string[];
   },
-  createdBy: string
+  createdBy: string,
 ): Promise<Blog> {
   // スラッグが指定されていない場合はタイトルから生成
   let slug = data.slug;
@@ -256,7 +261,7 @@ export async function createBlog(
         authorId,
         blog.id,
         null,
-        createdBy
+        createdBy,
       );
     }
   }
@@ -289,7 +294,7 @@ export async function updateBlog(
     setlist?: unknown | null; // JSON形式
     artistIds?: string[];
   },
-  updatedBy: string
+  updatedBy: string,
 ): Promise<Blog> {
   // ブログの存在確認と権限チェック
   const existingBlog = await getBlogById(id, true);
@@ -388,7 +393,7 @@ export async function updateBlog(
         authorId,
         id,
         null,
-        updatedBy
+        updatedBy,
       );
     }
   }
@@ -408,7 +413,7 @@ export async function updateBlog(
 export async function deleteBlog(
   id: number,
   authorId: number,
-  updatedBy: string
+  updatedBy: string,
 ): Promise<void> {
   const blog = await getBlogById(id, true);
 
@@ -432,8 +437,12 @@ export async function deleteBlog(
  * @param limit 取得件数（既定値 50）
  */
 export async function getPublicRecommendedBlogs(
-  limit: number = 50
-): Promise<(Blog & { author: { displayName: string | null; profileImageUrl: string | null } })[]> {
+  limit: number = 50,
+): Promise<
+  (Blog & {
+    author: { displayName: string | null; profileImageUrl: string | null };
+  })[]
+> {
   return prisma.blog.findMany({
     where: {
       status: "PUBLISHED",
@@ -446,7 +455,11 @@ export async function getPublicRecommendedBlogs(
     },
     orderBy: { blogCreatedTime: "desc" },
     take: limit,
-  }) as Promise<(Blog & { author: { displayName: string | null; profileImageUrl: string | null } })[]>;
+  }) as Promise<
+    (Blog & {
+      author: { displayName: string | null; profileImageUrl: string | null };
+    })[]
+  >;
 }
 
 /**
@@ -493,7 +506,7 @@ export async function searchBlogs(
   keyword: string,
   page: number = 1,
   limit: number = 10,
-  category?: BlogCategory
+  category?: BlogCategory,
 ): Promise<PaginationResult<Blog>> {
   if (!keyword || keyword.trim().length === 0) {
     return getPublishedBlogs(page, limit, category);
@@ -560,7 +573,7 @@ export async function searchBlogs(
 export async function searchBlogsByArtistName(
   artistName: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<PaginationResult<Blog>> {
   const term = artistName.trim();
   if (!term) {

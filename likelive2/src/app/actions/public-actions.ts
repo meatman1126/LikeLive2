@@ -4,6 +4,7 @@
  * Public API関連のServer Actions（認証不要）
  */
 
+import type { Comment, User } from "@/generated/prisma/client";
 import {
   findArtistsByBlogId,
   getBlogById,
@@ -14,7 +15,6 @@ import {
   findRepliesByParentCommentId,
 } from "@/lib/services/comment-service";
 import { NotFoundError } from "@/lib/utils/errors";
-import type { Comment, User } from "@/generated/prisma/client";
 
 /**
  * 未認証ユーザ向けにブログ記事を取得します（公開中のブログのみ）。
@@ -61,7 +61,7 @@ export type CommentWithReplies = Comment & {
  * @param blogId ブログID
  */
 export async function getPublicBlogCommentsAction(
-  blogId: number
+  blogId: number,
 ): Promise<CommentWithReplies[]> {
   // 親コメントを取得（comment-service で include: { author: true } しているため実行時は author を含む）
   const parentComments = await findParentCommentsByBlogId(blogId);
@@ -77,7 +77,7 @@ export async function getPublicBlogCommentsAction(
           replies: [], // 返信の返信は現在サポートしていない
         })),
       };
-    })
+    }),
   )) as unknown as CommentWithReplies[];
 
   return commentsWithReplies;

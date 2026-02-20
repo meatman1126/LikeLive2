@@ -8,8 +8,8 @@ import {
   getCurrentUserFromHeaders,
   getCurrentUserIdFromHeaders,
 } from "@/lib/auth/server-actions-auth";
-import { UnauthorizedError } from "@/lib/utils/errors";
 import { prisma } from "@/lib/prisma/client";
+import { UnauthorizedError } from "@/lib/utils/errors";
 import { isFollowing } from "@/lib/services/follow-service";
 import { getLikedBlogsByUserId } from "@/lib/services/like-service";
 import { findFavoriteArtistsByUserId } from "@/lib/services/user-artist-service";
@@ -71,7 +71,7 @@ export async function getUserProfileAction(targetUserId: number) {
 export async function searchUsersAction(
   keyword: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
 ) {
   const currentUserId = await getCurrentUserIdFromHeaders();
   const users = await searchUsers(keyword, currentUserId);
@@ -237,7 +237,7 @@ export async function getRecommendedUsersAction() {
   });
 
   const recommendedUserIds = recommendedUserArtists.map(
-    (ua: { userId: number }) => ua.userId
+    (ua: { userId: number }) => ua.userId,
   );
 
   if (recommendedUserIds.length === 0) {
@@ -281,8 +281,8 @@ export async function getRecommendedUsersAction() {
           favoriteArtistList: user.userArtists.map((ua) => ua.artist),
           isFollow,
         };
-      }
-    )
+      },
+    ),
   );
 
   return recommendedUsers;

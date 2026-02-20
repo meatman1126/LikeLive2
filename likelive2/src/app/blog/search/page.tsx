@@ -123,7 +123,9 @@ export default async function BlogSearchPage({ searchParams }: Props) {
                         </div>
                       ) : (
                         <div className="flex h-40 w-full items-center justify-center bg-gray-100">
-                          <span className="text-sm text-gray-400">画像なし</span>
+                          <span className="text-sm text-gray-400">
+                            画像なし
+                          </span>
                         </div>
                       )}
                       <div className="p-4">
