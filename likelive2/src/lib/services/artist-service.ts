@@ -4,7 +4,7 @@
 
 import { prisma } from '../prisma/client';
 import { NotFoundError } from '../utils/errors';
-import type { Artist } from '@/generated/prisma/client';
+import type { Artist } from "@prisma/client";
 
 /**
  * idに合致するアーティスト情報を取得します。

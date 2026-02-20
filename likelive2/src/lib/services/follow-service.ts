@@ -2,7 +2,7 @@
  * フォローサービスクラス
  */
 
-import type { Follow } from "@/generated/prisma/client";
+import type { Follow } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { ConflictError, ForbiddenError, NotFoundError } from "../utils/errors";
 import { createNotification } from "./notification-service";

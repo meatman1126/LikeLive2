@@ -7,8 +7,8 @@ import type {
   Blog,
   BlogCategory,
   BlogStatus,
-} from "@/generated/prisma/client";
-import { Prisma } from "@/generated/prisma/client";
+} from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { ForbiddenError, NotFoundError } from "../utils/errors";
 import type { PaginationResult } from "../utils/pagination";

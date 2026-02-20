@@ -4,7 +4,7 @@
 
 import { prisma } from '../prisma/client';
 import { NotFoundError } from '../utils/errors';
-import type { User } from '@/generated/prisma/client';
+import type { User } from "@prisma/client";
 import { findFavoriteArtistsByUserId } from './user-artist-service';
 import { findPublishedBlogsByUserId } from './blog-service';
 import { countFollowedUsers, countFollowers, isFollowing } from './follow-service';

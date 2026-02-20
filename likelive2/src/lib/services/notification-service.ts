@@ -2,7 +2,7 @@
  * 通知サービスクラス
  */
 
-import type { Notification, NotificationType } from "@/generated/prisma/client";
+import type { Notification, NotificationType } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { NotFoundError } from "../utils/errors";
 import { type PaginationResult } from "../utils/pagination";

@@ -2,7 +2,7 @@
  * API関連の型定義
  */
 
-import type { User, Blog, Comment, Artist, Notification, Follow } from '@/generated/prisma/client';
+import type { User, Blog, Comment, Artist, Notification, Follow } from "@prisma/client";
 
 // 認証関連
 export interface AuthenticatedUser {

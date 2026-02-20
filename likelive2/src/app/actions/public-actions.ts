@@ -4,7 +4,7 @@
  * Public API関連のServer Actions（認証不要）
  */
 
-import type { Comment, User } from "@/generated/prisma/client";
+import type { Comment, User } from "@prisma/client";
 import {
   findArtistsByBlogId,
   getBlogById,

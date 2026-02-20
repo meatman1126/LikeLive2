@@ -4,7 +4,7 @@
  * Blog関連のServer Actions
  */
 
-import type { BlogCategory } from "@/generated/prisma/client";
+import type { BlogCategory } from "@prisma/client";
 import { getCurrentUserIdFromHeaders } from "@/lib/auth/server-actions-auth";
 import { prisma } from "@/lib/prisma/client";
 import {

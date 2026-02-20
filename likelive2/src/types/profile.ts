@@ -2,7 +2,7 @@
  * プロフィール関連の型定義
  */
 
-import type { User, Artist, Blog } from '@/generated/prisma/client';
+import type { User, Artist, Blog } from "@prisma/client";
 
 export interface ProfileViewDto {
   userId: number;

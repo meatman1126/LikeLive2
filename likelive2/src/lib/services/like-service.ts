@@ -2,7 +2,7 @@
  * いいねサービスクラス
  */
 
-import type { UserBlogLike } from "@/generated/prisma/client";
+import type { UserBlogLike } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { ConflictError, NotFoundError } from "../utils/errors";
 

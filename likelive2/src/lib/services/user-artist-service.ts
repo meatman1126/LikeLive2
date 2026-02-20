@@ -3,7 +3,7 @@
  */
 
 import { prisma } from '../prisma/client';
-import type { Artist } from '@/generated/prisma/client';
+import type { Artist } from "@prisma/client";
 
 /**
  * 指定されたユーザーの好きなアーティスト一覧を取得します。

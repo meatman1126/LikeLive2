@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 import { requireAuth } from './auth-middleware';
 import { findUserBySubject } from '../services/user-service';
 import { NotFoundError } from '../utils/errors';
-import type { User } from '@/generated/prisma/client';
+import type { User } from "@prisma/client";
 
 /**
  * リクエストから現在のユーザーを取得

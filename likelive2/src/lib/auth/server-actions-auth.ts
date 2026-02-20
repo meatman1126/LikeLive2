@@ -4,7 +4,7 @@
  * Server Actionsから認証情報を取得するためのユーティリティ
  */
 
-import type { User } from "@/generated/prisma/client";
+import type { User } from "@prisma/client";
 import { cookies, headers } from "next/headers";
 import { findUserBySubject } from "../services/user-service";
 import { NotFoundError, UnauthorizedError } from "../utils/errors";

@@ -2,7 +2,7 @@
  * コメントサービスクラス
  */
 
-import type { Comment } from "@/generated/prisma/client";
+import type { Comment } from "@prisma/client";
 import { prisma } from "../prisma/client";
 import { ForbiddenError, NotFoundError } from "../utils/errors";
 import { createNotification } from "./notification-service";

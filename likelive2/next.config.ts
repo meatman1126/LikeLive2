@@ -21,15 +21,8 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "5mb",
     },
   },
-  // モノレポで lockfile が複数ある場合、トレースルートをこのアプリに固定（Vercel で Engine が含まれないのを防ぐ）
+  // モノレポで lockfile が複数ある場合、トレースルートをこのアプリに固定（Vercel 用）
   outputFileTracingRoot: path.join(__dirname),
-  // Prisma Query Engine (.so.node) をサーバーバンドルに含める（Next.js 16 でトップレベル）
-  outputFileTracingIncludes: {
-    "/**": [
-      "./generated/prisma/**/*.node",
-      "./generated/prisma/**/*.so.node",
-    ],
-  },
   // 画像の外部ホスト設定
   images: {
     remotePatterns: [
