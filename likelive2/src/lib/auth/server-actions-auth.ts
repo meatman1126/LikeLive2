@@ -1,7 +1,9 @@
 /**
  * Server Actions用の認証ヘルパー
  *
- * Server Actionsから認証情報を取得するためのユーティリティ
+ * Server Actionsから認証情報を取得するためのユーティリティ。
+ * パフォーマンス最適化: ll_subject Cookie が存在しトークン有効期限内なら
+ * Google API を呼ばずに subject を返す（高速パス）。
  */
 
 import type { User } from "@prisma/client";
@@ -16,6 +18,18 @@ export interface AuthContext {
 }
 
 const ACCESS_TOKEN_COOKIE = "ll_accessToken";
+const SUBJECT_COOKIE = "ll_subject";
+const TOKEN_EXPIRES_AT_COOKIE = "ll_tokenExpiresAt";
+
+/**
+ * トークン有効期限が切れていないかチェック
+ */
+function isTokenStillValid(expiresAtValue: string | undefined): boolean {
+  if (!expiresAtValue) return false;
+  const expiresAt = parseInt(expiresAtValue, 10);
+  if (isNaN(expiresAt)) return false;
+  return Date.now() < expiresAt;
+}
 
 /**
  * Server Actionsから認証情報を取得
@@ -24,11 +38,19 @@ const ACCESS_TOKEN_COOKIE = "ll_accessToken";
  * @throws UnauthorizedError 認証に失敗した場合
  */
 export async function getAuthContextFromHeaders(): Promise<AuthContext> {
-  // 優先: httpOnly Cookie（Server Actions推奨）
   const cookieStore = await cookies();
-  const accessTokenFromCookie = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
-  if (accessTokenFromCookie) {
-    const subject = await verifyGoogleToken(accessTokenFromCookie);
+  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
+  const subjectCookie = cookieStore.get(SUBJECT_COOKIE)?.value;
+  const expiresAt = cookieStore.get(TOKEN_EXPIRES_AT_COOKIE)?.value;
+
+  // 高速パス: subject Cookie があり、トークンが有効期限内ならば Google API をスキップ
+  if (accessToken && subjectCookie && isTokenStillValid(expiresAt)) {
+    return { subject: subjectCookie };
+  }
+
+  // 通常パス: Google API で検証（インメモリキャッシュあり）
+  if (accessToken) {
+    const subject = await verifyGoogleToken(accessToken);
     if (!subject) {
       throw new UnauthorizedError("Invalid or expired token");
     }

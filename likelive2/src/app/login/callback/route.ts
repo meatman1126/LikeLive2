@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 const ACCESS_TOKEN_COOKIE = "ll_accessToken";
 const REFRESH_TOKEN_COOKIE = "ll_refreshToken";
 const TOKEN_EXPIRES_AT_COOKIE = "ll_tokenExpiresAt"; // epoch ms
+const SUBJECT_COOKIE = "ll_subject";
 
 function cookieOptions() {
   return {
@@ -86,6 +87,7 @@ export async function GET(request: NextRequest) {
     const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
     const opts = cookieOptions();
     redirectResponse.cookies.set(ACCESS_TOKEN_COOKIE, tokenData.access_token, opts);
+    redirectResponse.cookies.set(SUBJECT_COOKIE, subject, opts);
     if (tokenData.refresh_token) {
       redirectResponse.cookies.set(REFRESH_TOKEN_COOKIE, tokenData.refresh_token, opts);
     }

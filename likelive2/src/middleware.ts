@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 const ACCESS_TOKEN_COOKIE = "ll_accessToken";
 const REFRESH_TOKEN_COOKIE = "ll_refreshToken";
 const TOKEN_EXPIRES_AT_COOKIE = "ll_tokenExpiresAt";
+const SUBJECT_COOKIE = "ll_subject";
 
 /**
  * 認証が必要なページのパスパターン
@@ -162,14 +163,13 @@ async function refreshAccessToken(refreshToken: string): Promise<{
 }
 
 /**
- * トークンを検証
+ * トークンを検証し、subject を返す
  */
-async function verifyToken(token: string): Promise<boolean> {
+async function verifyToken(token: string): Promise<string | null> {
   try {
-    const subject = await verifyGoogleToken(token);
-    return subject !== null;
+    return await verifyGoogleToken(token);
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -198,11 +198,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // トークンを検証
-  const isValid = await verifyToken(accessToken);
+  const subject = await verifyToken(accessToken);
 
-  // トークンが有効な場合はそのまま通過
-  if (isValid) {
-    return NextResponse.next();
+  // トークンが有効な場合は subject Cookie を設定して通過
+  if (subject) {
+    const isProduction = process.env.NODE_ENV === "production";
+    const response = NextResponse.next();
+    response.cookies.set(SUBJECT_COOKIE, subject, cookieOptions(isProduction));
+    return response;
   }
 
   // トークンが無効な場合、リフレッシュトークンで更新を試みる
@@ -233,8 +236,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // 新しいトークンを検証
-  const isNewTokenValid = await verifyToken(newTokenData.access_token);
-  if (!isNewTokenValid) {
+  const newSubject = await verifyToken(newTokenData.access_token);
+  if (!newSubject) {
     // 新しいトークンも無効な場合はルートページにリダイレクト
     const url = request.nextUrl.clone();
     url.pathname = "/";
@@ -247,14 +250,21 @@ export async function middleware(request: NextRequest) {
   }
 
   // 新しいトークンでリクエストを続行
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProductionEnv = process.env.NODE_ENV === "production";
   const response = NextResponse.next();
 
   // 新しいアクセストークンをCookieに設定
   response.cookies.set(
     ACCESS_TOKEN_COOKIE,
     newTokenData.access_token,
-    cookieOptions(isProduction)
+    cookieOptions(isProductionEnv)
+  );
+
+  // subject CookieをCookieに設定
+  response.cookies.set(
+    SUBJECT_COOKIE,
+    newSubject,
+    cookieOptions(isProductionEnv)
   );
 
   // 有効期限をCookieに設定
@@ -263,7 +273,7 @@ export async function middleware(request: NextRequest) {
     response.cookies.set(
       TOKEN_EXPIRES_AT_COOKIE,
       String(expiresAt),
-      cookieOptions(isProduction)
+      cookieOptions(isProductionEnv)
     );
   }
 

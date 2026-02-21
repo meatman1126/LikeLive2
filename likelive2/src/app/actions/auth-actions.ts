@@ -15,6 +15,7 @@ import { cookies } from "next/headers";
 const ACCESS_TOKEN_COOKIE = "ll_accessToken";
 const REFRESH_TOKEN_COOKIE = "ll_refreshToken";
 const TOKEN_EXPIRES_AT_COOKIE = "ll_tokenExpiresAt"; // epoch ms
+const SUBJECT_COOKIE = "ll_subject";
 
 function cookieOptions() {
   return {
@@ -76,6 +77,7 @@ export async function loginWithGoogleCodeAction(code: string) {
   // Cookie保存
   const store = await cookies();
   store.set(ACCESS_TOKEN_COOKIE, tokenData.access_token, cookieOptions());
+  store.set(SUBJECT_COOKIE, subject, cookieOptions());
 
   if (tokenData.refresh_token) {
     store.set(REFRESH_TOKEN_COOKIE, tokenData.refresh_token, cookieOptions());
@@ -156,6 +158,7 @@ export async function logoutAction() {
   store.delete(ACCESS_TOKEN_COOKIE);
   store.delete(REFRESH_TOKEN_COOKIE);
   store.delete(TOKEN_EXPIRES_AT_COOKIE);
+  store.delete(SUBJECT_COOKIE);
   // <form action={logoutAction}> の要件に合わせて戻り値はvoidにする
 }
 
