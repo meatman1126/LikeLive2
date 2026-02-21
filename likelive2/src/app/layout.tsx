@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     template: "%s | LikeLive2", // 各ページで title を指定すると「ページ名 | LikeLive2」になる
   },
   description: "LikeLive2 - ライブレポート・ブログ",
+  icons: {
+    icon: "/icon_header.png",
+  },
 };
 
 export default function RootLayout({
