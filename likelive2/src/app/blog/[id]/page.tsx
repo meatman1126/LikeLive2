@@ -7,7 +7,9 @@ import {
 } from "@/app/actions";
 import { BlogContentRenderer } from "@/app/components/BlogContentRenderer";
 import { Header } from "@/app/components/Header";
+import { getBlogById } from "@/lib/services/blog-service";
 import { ArtistImage } from "@/app/me/ArtistImage";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlogInteractions } from "./BlogInteractions";
@@ -21,6 +23,50 @@ export const dynamic = "force-dynamic";
 type Props = {
   params: Promise<{ id: string }>;
 };
+
+/** Tiptap の JSON ノードから平文テキストを再帰的に抽出する */
+function extractText(node: unknown): string {
+  if (!node || typeof node !== "object") return "";
+  const n = node as { type?: string; text?: string; content?: unknown[] };
+  if (n.type === "text" && typeof n.text === "string") return n.text;
+  if (Array.isArray(n.content)) return n.content.map(extractText).join("");
+  return "";
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const blogId = Number(id);
+
+  try {
+    const blog = await getBlogById(blogId);
+
+    if (blog.status !== "PUBLISHED" || blog.isDeleted) return {};
+
+    const description =
+      extractText(blog.content).replace(/\s+/g, " ").trim().slice(0, 160) ||
+      "LikeLive2のブログ記事";
+    const images = blog.thumbnailUrl ? [{ url: blog.thumbnailUrl }] : [];
+
+    return {
+      title: blog.title,
+      description,
+      openGraph: {
+        title: blog.title,
+        description,
+        type: "article",
+        images,
+      },
+      twitter: {
+        card: blog.thumbnailUrl ? "summary_large_image" : "summary",
+        title: blog.title,
+        description,
+        images: blog.thumbnailUrl ? [blog.thumbnailUrl] : [],
+      },
+    };
+  } catch {
+    return {};
+  }
+}
 
 type SetlistTrack = { trackName?: string; trackNumber?: number };
 

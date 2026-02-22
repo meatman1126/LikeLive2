@@ -13,6 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: "LikeLive2",
     template: "%s | LikeLive2", // 各ページで title を指定すると「ページ名 | LikeLive2」になる
@@ -20,6 +23,14 @@ export const metadata: Metadata = {
   description: "LikeLive2 - ライブレポート・ブログ",
   icons: {
     icon: "/icon_header.png",
+  },
+  openGraph: {
+    siteName: "LikeLive2",
+    type: "website",
+    locale: "ja_JP",
+  },
+  twitter: {
+    card: "summary_large_image",
   },
 };
 
