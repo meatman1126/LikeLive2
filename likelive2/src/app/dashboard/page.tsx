@@ -27,7 +27,7 @@ export default async function DashboardPage() {
       getInterestBlogsAction(),
       getRecommendedUsersAction(),
       getMyDraftsAction(),
-      getMyReleasesAction(30, 0),
+      getMyReleasesAction(10, 0),
     ]);
 
   return (

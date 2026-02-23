@@ -17,7 +17,7 @@ type Props = {
   releasesTotal: number;
 };
 
-const RELEASE_LIMIT = 30;
+const RELEASE_LIMIT = 10;
 
 const RELEASE_TYPE_LABELS: Record<string, string> = {
   album: "アルバム",
@@ -115,7 +115,77 @@ export function DashboardClient({
       )}
       <div className="container mx-auto p-4 font-sans">
         <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 bg-white px-6 py-12">
-          {/* お気に入りアーティストの新譜 */}
+          {/* おすすめの新着投稿 */}
+          <section className="space-y-4">
+            <h2 className="text-xl text-gray-700 font-semibold">
+              おすすめの新着投稿
+            </h2>
+            {interestBlogs.length === 0 ? (
+              <p className="text-sm text-gray-700">
+                おすすめの投稿はまだありません。
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {interestBlogs.map((blog) => (
+                  <Link
+                    key={blog.id}
+                    href={`/blog/${blog.id}`}
+                    className="block rounded-lg border border-black/[.08] bg-white p-6 shadow-lg transition-shadow hover:shadow-xl dark:border-white/[.145]"
+                  >
+                    {blog.thumbnailUrl ? (
+                      <div className="relative mb-4 h-36 w-full overflow-hidden rounded-t-lg">
+                        <Image
+                          src={normalizeImageUrl(blog.thumbnailUrl)}
+                          alt={`${blog.title}のサムネイル`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="mb-4 flex h-36 w-full items-center justify-center rounded-t-lg bg-zinc-100 dark:bg-zinc-800">
+                        <span className="text-sm text-zinc-500">画像なし</span>
+                      </div>
+                    )}
+
+                    <h3 className="mb-4 text-xl font-bold text-gray-700">
+                      {blog.title}
+                    </h3>
+
+                    <div className="mb-4 flex items-center">
+                      {blog.author?.profileImageUrl ? (
+                        <div className="relative mr-4 h-10 w-10 overflow-hidden rounded-full border-2 border-gray-300">
+                          <Image
+                            src={normalizeImageUrl(blog.author.profileImageUrl)}
+                            alt={`${blog.author.displayName}のアイコン`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-300">
+                          <span className="text-lg">👤</span>
+                        </div>
+                      )}
+                      <div className="flex flex-1 items-center justify-between">
+                        <p className="font-semibold text-gray-700">
+                          {blog.author?.displayName ?? "unknown"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-right text-sm text-gray-500">
+                      投稿日:{" "}
+                      {new Date(blog.blogCreatedTime).toLocaleDateString(
+                        "ja-JP",
+                      )}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* お気に入りアーティストの最新リリース */}
           <section className="space-y-4">
             <h2 className="text-xl text-gray-700 font-semibold">
               お気に入りアーティストの最新リリース
@@ -215,76 +285,6 @@ export function DashboardClient({
                   </div>
                 )}
               </>
-            )}
-          </section>
-
-          {/* おすすめの新着投稿 */}
-          <section className="space-y-4">
-            <h2 className="text-xl text-gray-700 font-semibold">
-              おすすめの新着投稿
-            </h2>
-            {interestBlogs.length === 0 ? (
-              <p className="text-sm text-gray-700">
-                おすすめの投稿はまだありません。
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {interestBlogs.map((blog) => (
-                  <Link
-                    key={blog.id}
-                    href={`/blog/${blog.id}`}
-                    className="block rounded-lg border border-black/[.08] bg-white p-6 shadow-lg transition-shadow hover:shadow-xl dark:border-white/[.145]"
-                  >
-                    {blog.thumbnailUrl ? (
-                      <div className="relative mb-4 h-36 w-full overflow-hidden rounded-t-lg">
-                        <Image
-                          src={normalizeImageUrl(blog.thumbnailUrl)}
-                          alt={`${blog.title}のサムネイル`}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="mb-4 flex h-36 w-full items-center justify-center rounded-t-lg bg-zinc-100 dark:bg-zinc-800">
-                        <span className="text-sm text-zinc-500">画像なし</span>
-                      </div>
-                    )}
-
-                    <h3 className="mb-4 text-xl font-bold text-gray-700">
-                      {blog.title}
-                    </h3>
-
-                    <div className="mb-4 flex items-center">
-                      {blog.author?.profileImageUrl ? (
-                        <div className="relative mr-4 h-10 w-10 overflow-hidden rounded-full border-2 border-gray-300">
-                          <Image
-                            src={normalizeImageUrl(blog.author.profileImageUrl)}
-                            alt={`${blog.author.displayName}のアイコン`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-300">
-                          <span className="text-lg">👤</span>
-                        </div>
-                      )}
-                      <div className="flex flex-1 items-center justify-between">
-                        <p className="font-semibold text-gray-700">
-                          {blog.author?.displayName ?? "unknown"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="text-right text-sm text-gray-500">
-                      投稿日:{" "}
-                      {new Date(blog.blogCreatedTime).toLocaleDateString(
-                        "ja-JP",
-                      )}
-                    </p>
-                  </Link>
-                ))}
-              </div>
             )}
           </section>
 
