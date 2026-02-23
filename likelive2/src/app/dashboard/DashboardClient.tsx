@@ -118,7 +118,7 @@ export function DashboardClient({
           {/* お気に入りアーティストの新譜 */}
           <section className="space-y-4">
             <h2 className="text-xl text-gray-700 font-semibold">
-              お気に入りアーティストの新譜
+              お気に入りアーティストの最新リリース
             </h2>
             {releases.length === 0 ? (
               <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">

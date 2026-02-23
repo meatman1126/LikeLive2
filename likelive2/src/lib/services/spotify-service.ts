@@ -124,37 +124,29 @@ export async function getArtistInfo(
 }
 
 /**
- * アーティストのアルバム一覧を取得します（album と single のみ）。
- * Spotify APIのページネーションを処理し、全件取得します。
+ * アーティストの最新リリース1件を取得します（album と single のみ）。
  *
  * @param artistId Spotify アーティストID
  * @param accessToken Spotify アクセストークン
- * @returns アルバム一覧
+ * @returns 最新リリース（存在しない場合は空配列）
  */
 export async function getArtistAlbums(
   artistId: string,
   accessToken: string
 ): Promise<SpotifyAlbum[]> {
-  const albums: SpotifyAlbum[] = [];
-  let url: string | null =
-    `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single&limit=50&market=JP`;
-
-  while (url) {
-    const response = await fetchWithRetry(url, {
+  const response = await fetchWithRetry(
+    `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single&limit=1&market=JP`,
+    {
       headers: { Authorization: `Bearer ${accessToken}` },
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to get albums for artist ${artistId}: ${response.statusText}`
-      );
     }
+  );
 
-    const data: { items: SpotifyAlbum[]; next: string | null } =
-      await response.json();
-    albums.push(...data.items);
-    url = data.next;
+  if (!response.ok) {
+    throw new Error(
+      `Failed to get albums for artist ${artistId}: ${response.statusText}`
+    );
   }
 
-  return albums;
+  const data: { items: SpotifyAlbum[] } = await response.json();
+  return data.items;
 }
