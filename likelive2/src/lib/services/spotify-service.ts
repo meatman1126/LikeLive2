@@ -124,18 +124,18 @@ export async function getArtistInfo(
 }
 
 /**
- * アーティストの最新リリース1件を取得します（album と single のみ）。
+ * アーティストの最新リリース最大10件を取得します（album と single のみ）。
  *
  * @param artistId Spotify アーティストID
  * @param accessToken Spotify アクセストークン
- * @returns 最新リリース（存在しない場合は空配列）
+ * @returns 最新リリース一覧（存在しない場合は空配列）
  */
 export async function getArtistAlbums(
   artistId: string,
   accessToken: string
 ): Promise<SpotifyAlbum[]> {
   const response = await fetchWithRetry(
-    `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single&limit=1&market=JP`,
+    `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single&limit=10&market=JP`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     }
