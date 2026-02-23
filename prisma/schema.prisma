@@ -82,6 +82,7 @@ model Artist {
   // Relations
   userArtists UserArtist[]
   blogArtists BlogArtist[]
+  releases    Release[]
 
   @@map("artists")
 }
@@ -243,6 +244,32 @@ model Notification {
   relatedComment Comment? @relation("RelatedComment", fields: [commentId], references: [id], onDelete: SetNull)
 
   @@map("notifications")
+}
+
+model Release {
+  id                    String    @id @default(cuid())
+  spotifyReleaseId      String    @unique @map("spotify_release_id")
+  spotifyArtistId       String    @map("spotify_artist_id")
+  name                  String
+  releaseType           String    @map("release_type") // album | single | ep | compilation
+  releaseDateRaw        String    @map("release_date_raw") // Spotifyから取得した生の値
+  releaseDatePrecision  String    @map("release_date_precision") // day | month | year
+  releaseDateNormalized DateTime? @map("release_date_normalized") // 正規化済み日付（ソート用）
+  coverImageUrl         String?   @map("cover_image_url")
+  spotifyUrl            String    @map("spotify_url")
+
+  // BaseEntity fields
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  artist Artist @relation(fields: [spotifyArtistId], references: [id])
+
+  @@index([spotifyArtistId])
+  @@index([releaseDateNormalized])
+  @@map("releases")
 }
 
 model CommentTree {

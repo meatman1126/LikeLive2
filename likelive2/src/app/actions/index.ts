@@ -30,3 +30,6 @@ export * from "./public-actions";
 
 // File関連
 export * from "./file-actions";
+
+// Release関連
+export * from "./release-actions";

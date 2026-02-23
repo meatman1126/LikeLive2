@@ -51,5 +51,8 @@ export const env = {
   // Spotify
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+
+  // Cron Jobs
+  cronSecret: process.env.CRON_SECRET,
 } as const;
 

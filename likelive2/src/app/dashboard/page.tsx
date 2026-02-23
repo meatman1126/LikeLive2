@@ -3,6 +3,7 @@ import {
   getInterestBlogsAction,
   getMyDraftsAction,
   getMyProfileAction,
+  getMyReleasesAction,
   getRecommendedUsersAction,
 } from "@/app/actions";
 import { Header } from "@/app/components/Header";
@@ -21,11 +22,13 @@ export default async function DashboardPage() {
   // 初回ログイン判定（updatedByが"System"の場合は初回ログイン）
   const isFirstLogin = currentUser.updatedBy === "System";
 
-  const [interestBlogs, recommendedUsers, drafts] = await Promise.all([
-    getInterestBlogsAction(),
-    getRecommendedUsersAction(),
-    getMyDraftsAction(),
-  ]);
+  const [interestBlogs, recommendedUsers, drafts, releasesResult] =
+    await Promise.all([
+      getInterestBlogsAction(),
+      getRecommendedUsersAction(),
+      getMyDraftsAction(),
+      getMyReleasesAction(30, 0),
+    ]);
 
   return (
     <>
@@ -36,6 +39,8 @@ export default async function DashboardPage() {
         interestBlogs={interestBlogs}
         recommendedUsers={recommendedUsers}
         drafts={drafts}
+        initialReleases={releasesResult.items}
+        releasesTotal={releasesResult.total}
       />
     </>
   );

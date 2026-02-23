@@ -5,6 +5,7 @@ import { normalizeImageUrl } from "@/lib/utils/image-url";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import type { ReleaseWithArtist } from "@/lib/services/release-service";
 
 type Props = {
   isFirstLogin: boolean;
@@ -12,7 +13,34 @@ type Props = {
   interestBlogs: any[];
   recommendedUsers: any[];
   drafts: any[];
+  initialReleases: ReleaseWithArtist[];
+  releasesTotal: number;
 };
+
+const RELEASE_LIMIT = 30;
+
+const RELEASE_TYPE_LABELS: Record<string, string> = {
+  album: "アルバム",
+  single: "シングル",
+  ep: "EP",
+  compilation: "コンピレーション",
+};
+
+function formatReleaseDate(
+  releaseNormalized: Date | null,
+  raw: string,
+  precision: string
+): string {
+  if (!releaseNormalized) return raw;
+  const d = new Date(releaseNormalized);
+  if (precision === "day") {
+    return d.toLocaleDateString("ja-JP");
+  } else if (precision === "month") {
+    return `${d.getFullYear()}年${d.getMonth() + 1}月`;
+  } else {
+    return `${d.getFullYear()}年`;
+  }
+}
 
 export function DashboardClient({
   isFirstLogin,
@@ -20,12 +48,61 @@ export function DashboardClient({
   interestBlogs,
   recommendedUsers,
   drafts,
+  initialReleases,
+  releasesTotal,
 }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(isFirstLogin);
+  const [releases, setReleases] = useState<ReleaseWithArtist[]>(initialReleases);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true);
+    try {
+      const res = await fetch(
+        `/api/dashboard/releases?limit=${RELEASE_LIMIT}&offset=${releases.length}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      const newReleases: ReleaseWithArtist[] = data.items.map((item: any) => ({
+        id: item.release.id,
+        spotifyReleaseId: item.release.spotifyReleaseId,
+        spotifyArtistId: item.artist.spotifyArtistId,
+        name: item.release.name,
+        releaseType: item.release.type,
+        releaseDateRaw: item.release.releaseDate,
+        releaseDatePrecision: item.release.releaseDatePrecision,
+        releaseDateNormalized: item.release.releaseDate
+          ? new Date(item.release.releaseDate)
+          : null,
+        coverImageUrl: item.release.coverImageUrl,
+        spotifyUrl: item.release.spotifyUrl,
+        createdBy: "",
+        createdAt: new Date(),
+        updatedBy: "",
+        updatedAt: new Date(),
+        artist: {
+          id: item.artist.spotifyArtistId,
+          name: item.artist.name,
+          imageUrl: item.artist.imageUrl,
+          createdBy: "",
+          createdAt: new Date(),
+          updatedBy: "",
+          updatedAt: new Date(),
+        },
+      }));
+      setReleases((prev) => [...prev, ...newReleases]);
+    } catch (e) {
+      console.error("Failed to load more releases:", e);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const hasMore = releases.length < releasesTotal;
 
   return (
     <>
@@ -38,6 +115,109 @@ export function DashboardClient({
       )}
       <div className="container mx-auto p-4 font-sans">
         <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 bg-white px-6 py-12">
+          {/* お気に入りアーティストの新譜 */}
+          <section className="space-y-4">
+            <h2 className="text-xl text-gray-700 font-semibold">
+              お気に入りアーティストの新譜
+            </h2>
+            {releases.length === 0 ? (
+              <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
+                <p className="text-sm text-gray-600">
+                  お気に入りアーティストを追加すると新譜がここに出ます
+                </p>
+                <Link
+                  href="/me"
+                  className="inline-block rounded-lg bg-blue-500 px-6 py-2 text-sm text-white transition-colors hover:bg-blue-600"
+                >
+                  アーティストを追加する
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {releases.map((release) => (
+                    <a
+                      key={release.spotifyReleaseId}
+                      href={release.spotifyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex flex-col gap-2 rounded-lg border border-black/[.08] bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
+                    >
+                      {/* ジャケット画像 */}
+                      <div className="relative aspect-square w-full overflow-hidden rounded-md bg-gray-100">
+                        {release.coverImageUrl ? (
+                          <Image
+                            src={normalizeImageUrl(release.coverImageUrl)}
+                            alt={`${release.name}のジャケット`}
+                            fill
+                            className="object-cover transition-transform group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <span className="text-2xl text-gray-400">♪</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* リリース情報 */}
+                      <div className="flex flex-col gap-1 min-w-0">
+                        {/* アーティスト名 */}
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {release.artist.imageUrl && (
+                            <div className="relative h-4 w-4 flex-shrink-0 overflow-hidden rounded-full">
+                              <Image
+                                src={normalizeImageUrl(release.artist.imageUrl)}
+                                alt={release.artist.name ?? ""}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          )}
+                          <span className="truncate text-xs text-gray-500">
+                            {release.artist.name ?? "Unknown"}
+                          </span>
+                        </div>
+
+                        {/* リリース名 */}
+                        <p className="truncate text-sm font-semibold text-gray-800 leading-snug">
+                          {release.name}
+                        </p>
+
+                        {/* 種別 & 日付 */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-block rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                            {RELEASE_TYPE_LABELS[release.releaseType] ??
+                              release.releaseType}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {formatReleaseDate(
+                              release.releaseDateNormalized,
+                              release.releaseDateRaw,
+                              release.releaseDatePrecision
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+
+                {/* もっと見るボタン */}
+                {hasMore && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      className="rounded-lg border border-gray-300 px-6 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {isLoadingMore ? "読み込み中..." : "もっと見る"}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+
           {/* おすすめの新着投稿 */}
           <section className="space-y-4">
             <h2 className="text-xl text-gray-700 font-semibold">

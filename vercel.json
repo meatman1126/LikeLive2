@@ -1,4 +1,10 @@
 {
   "installCommand": "cd .. && npm install && cd likelive2 && npm install",
-  "buildCommand": "cd .. && npx prisma generate && cd likelive2 && npm run build"
+  "buildCommand": "cd .. && npx prisma generate && cd likelive2 && npm run build",
+  "crons": [
+    {
+      "path": "/api/jobs/collect-releases",
+      "schedule": "0 17 * * *"
+    }
+  ]
 }
