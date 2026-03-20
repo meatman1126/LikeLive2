@@ -450,7 +450,7 @@ export async function getPublicRecommendedBlogs(
     },
     include: {
       author: {
-        select: { displayName: true, profileImageUrl: true },
+        select: { id: true, displayName: true, profileImageUrl: true },
       },
     },
     orderBy: { blogCreatedTime: "desc" },
@@ -603,7 +603,7 @@ export async function searchBlogsByArtistName(
       },
       include: {
         author: {
-          select: { displayName: true, profileImageUrl: true },
+          select: { id: true, displayName: true, profileImageUrl: true },
         },
       },
       orderBy: { blogCreatedTime: "desc" },
