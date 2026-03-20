@@ -15,9 +15,6 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<{ [key
       author: {
         select: { id: true, displayName: true, profileImageUrl: true },
       },
-      _count: {
-        select: { userBlogLikes: true, comments: true },
-      },
     },
   });
   if (!blog || blog.isDeleted) {
