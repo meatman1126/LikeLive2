@@ -11,7 +11,12 @@ async function getHandler(req: NextRequest) {
 
 async function putHandler(req: NextRequest) {
   const user = await getAuthenticatedUser(req);
-  const body = await getRequestBody<{ displayName?: string; selfIntroduction?: string; profileImageUrl?: string }>(req);
+  const body = await getRequestBody<{
+    displayName?: string;
+    selfIntroduction?: string;
+    profileImageUrl?: string;
+    favoriteArtistList?: Array<{ id: string; name?: string | null; imageUrl?: string | null }>;
+  }>(req);
   const updated = await updateUserProfile(user.id, body, String(user.id));
   return updated;
 }
