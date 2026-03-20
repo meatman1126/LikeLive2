@@ -9,28 +9,30 @@ import { getRequestBody } from '@/lib/utils/request';
 
 interface CallbackRequest {
   code: string;
+  redirect_uri?: string;
 }
 
 async function handler(req: NextRequest) {
   const body = await getRequestBody<CallbackRequest>(req);
-  const { code } = body;
-  
+  const { code, redirect_uri } = body;
+
   if (!code) {
     throw new Error('Code is required');
   }
-  
+
   const { googleClientId, googleClientSecret, oauthRedirectUri } = await import('@/lib/config/env').then(m => m.env);
-  
+
   if (!googleClientId || !googleClientSecret || !oauthRedirectUri) {
     throw new Error('OAuth configuration is missing');
   }
-  
+
   // Googleのトークンサーバーにリクエストを送る
+  // iOS等のクライアントから redirect_uri が指定された場合はそちらを使用
   const params = new URLSearchParams();
   params.append('code', code);
   params.append('client_id', googleClientId);
   params.append('client_secret', googleClientSecret);
-  params.append('redirect_uri', oauthRedirectUri);
+  params.append('redirect_uri', redirect_uri || oauthRedirectUri);
   params.append('grant_type', 'authorization_code');
   
   const response = await fetch('https://oauth2.googleapis.com/token', {
