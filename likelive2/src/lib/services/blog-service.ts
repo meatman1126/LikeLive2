@@ -438,6 +438,7 @@ export async function deleteBlog(
  */
 export async function getPublicRecommendedBlogs(
   limit: number = 50,
+  excludeUserId?: number,
 ): Promise<
   (Blog & {
     author: { displayName: string | null; profileImageUrl: string | null };
@@ -447,6 +448,7 @@ export async function getPublicRecommendedBlogs(
     where: {
       status: "PUBLISHED",
       isDeleted: false,
+      ...(excludeUserId ? { authorId: { not: excludeUserId } } : {}),
     },
     include: {
       author: {

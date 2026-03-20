@@ -17,8 +17,9 @@ async function handler(req: NextRequest) {
   }
 
   const uniqueBlogs = Array.from(new Map(allBlogs.map((b) => [b.id, b])).values());
-  uniqueBlogs.sort((a, b) => b.id - a.id);
-  return uniqueBlogs.slice(0, 20);
+  const filtered = uniqueBlogs.filter((b: any) => b.authorId !== user.id);
+  filtered.sort((a, b) => b.id - a.id);
+  return filtered.slice(0, 20);
 }
 
 export const GET = createGetHandler(handler);
