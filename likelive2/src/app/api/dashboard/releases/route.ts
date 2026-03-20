@@ -14,9 +14,16 @@ import { findUserBySubject } from "@/lib/services/user-service";
 import { findReleasesForUser } from "@/lib/services/release-service";
 
 export async function GET(req: NextRequest) {
-  // Cookie からアクセストークンを取得
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("ll_accessToken")?.value;
+  // Bearer ヘッダー or Cookie からアクセストークンを取得
+  const authHeader = req.headers.get("Authorization");
+  let accessToken: string | undefined;
+
+  if (authHeader?.startsWith("Bearer ")) {
+    accessToken = authHeader.substring(7);
+  } else {
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get("ll_accessToken")?.value;
+  }
 
   if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
