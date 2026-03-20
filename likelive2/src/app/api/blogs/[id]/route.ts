@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from "@/lib/auth/get-authenticated-user";
 import { updateBlog, deleteBlog, incrementViewCount } from "@/lib/services/blog-service";
 import { getPathParamAsNumber } from "@/lib/utils/request";
 import { getRequestBody } from "@/lib/utils/request";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma/client";
 
 async function getHandler(req: NextRequest, { params }: { params: Promise<{ [key: string]: string }> }) {
   const id = await getPathParamAsNumber(params, "id");
