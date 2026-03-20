@@ -1,14 +1,29 @@
 import { NextRequest } from "next/server";
 import { createGetHandler, createPutHandler, createDeleteHandler } from "@/lib/utils/api-handler";
 import { getAuthenticatedUser } from "@/lib/auth/get-authenticated-user";
-import { getBlogById, updateBlog, deleteBlog, incrementViewCount } from "@/lib/services/blog-service";
+import { updateBlog, deleteBlog, incrementViewCount } from "@/lib/services/blog-service";
 import { getPathParamAsNumber } from "@/lib/utils/request";
 import { getRequestBody } from "@/lib/utils/request";
+import { prisma } from "@/lib/prisma";
 
 async function getHandler(req: NextRequest, { params }: { params: Promise<{ [key: string]: string }> }) {
   const id = await getPathParamAsNumber(params, "id");
   await incrementViewCount(id);
-  return await getBlogById(id);
+  const blog = await prisma.blog.findUnique({
+    where: { id },
+    include: {
+      author: {
+        select: { id: true, displayName: true, profileImageUrl: true },
+      },
+      _count: {
+        select: { userBlogLikes: true, comments: true },
+      },
+    },
+  });
+  if (!blog || blog.isDeleted) {
+    throw new Error("Blog not found");
+  }
+  return blog;
 }
 
 async function putHandler(req: NextRequest, { params }: { params: Promise<{ [key: string]: string }> }) {
